@@ -1,0 +1,62 @@
+@page "/backend"
+@inject BackendClient Client
+
+<h1 class="page-title">Backend</h1>
+
+<p class="field-label">Currently in use</p>
+<p style="color:gray;font-size:16px;margin-top:0;">@Client.Address</p>
+
+<div class="divider"></div>
+
+<div class="field">
+    <label class="field-label" for="host">Host (IP or name)</label>
+    <input id="host" type="text" @bind="host" placeholder="localhost" />
+</div>
+
+<div class="field">
+    <label class="field-label" for="port">Port</label>
+    <input id="port" type="number" min="1" max="65535" @bind="port" placeholder="5080" />
+</div>
+
+<div class="button-row" style="margin-top:12px;">
+    <button @onclick="Reload">Reload</button>
+    <button @onclick="Save">Save</button>
+</div>
+
+<p style="color:gray;">@status</p>
+
+<div class="divider"></div>
+<p style="color:gray;font-size:12px;">
+    Saving rebuilds the gRPC channel immediately. Switching to any other page refetches against the new endpoint.
+</p>
+
+@code {
+    private string host = "";
+    private int port;
+    private string? status;
+
+    protected override void OnInitialized()
+    {
+        Reload();
+    }
+
+    private void Reload()
+    {
+        host = Client.Host;
+        port = Client.Port;
+        status = null;
+    }
+
+    private void Save()
+    {
+        try
+        {
+            Client.UpdateEndpoint(host, port);
+            status = $"Saved. Backend is now {Client.Address}. Open any other page to see it in effect.";
+        }
+        catch (Exception ex)
+        {
+            status = $"Error: {ex.Message}";
+        }
+    }
+}

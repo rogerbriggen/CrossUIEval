@@ -131,8 +131,8 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Install MAUI workloads (ios)
-        run: dotnet workload install maui-ios --source https://api.nuget.org/v3/index.json
+      - name: Install MAUI workloads (full bundle — projects have multi-TFM android+ios+maccatalyst so restore needs them all)
+        run: dotnet workload install maui --source https://api.nuget.org/v3/index.json
 
       # -------- Backend (matching backend for iOS builds) --------
       - name: Publish Backend (osx-arm64)

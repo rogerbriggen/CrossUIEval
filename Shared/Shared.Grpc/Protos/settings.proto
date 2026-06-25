@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+option csharp_namespace = "BackendUiEval.Grpc";
+
+package settings;
+
+import "google/protobuf/timestamp.proto";
+import "common.proto";
+
+service SettingsService {
+  rpc GetSettings (GetSettingsRequest) returns (Settings);
+  rpc UpdateSettings (UpdateSettingsRequest) returns (Settings);
+}
+
+enum Language {
+  LANGUAGE_UNSPECIFIED = 0;
+  EN = 1;
+  DE = 2;
+  FR = 3;
+  IT = 4;
+}
+
+enum AccentColor {
+  ACCENT_COLOR_UNSPECIFIED = 0;
+  BLUE = 1;
+  GREEN = 2;
+  RED = 3;
+  ORANGE = 4;
+  PURPLE = 5;
+  TEAL = 6;
+  PINK = 7;
+}
+
+message GetSettingsRequest {
+  common.Person person = 1;
+}
+
+message UpdateSettingsRequest {
+  common.Person person = 1;
+  Settings settings = 2;
+}
+
+message Settings {
+  common.Person person = 1;
+
+  // switches
+  bool notifications_enabled = 10;
+  bool dark_mode = 11;
+  bool show_completed_todos = 12;
+
+  // single-line text
+  string display_name = 20;
+  string email = 21;
+
+  // multi-line text
+  string signature = 30;
+  string default_detail_template = 31;
+
+  // dropdowns
+  common.TodoType default_todo_type = 40;
+  common.TodoState default_state = 41;
+  Language language = 42;
+  int32 page_size = 43;
+
+  // read-only
+  string user_id = 50;
+  google.protobuf.Timestamp account_created = 51;
+  int32 todo_count = 52;
+  string app_version = 53;
+
+  // horizontal scroll picker
+  AccentColor accent_color = 60;
+}

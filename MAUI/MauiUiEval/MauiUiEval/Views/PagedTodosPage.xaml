@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:MauiUiEval.ViewModels"
+             xmlns:grpc="clr-namespace:BackendUiEval.Grpc;assembly=Shared.Grpc"
+             x:Class="MauiUiEval.Views.PagedTodosPage"
+             x:DataType="vm:PagedTodosViewModel"
+             Title="Paged">
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- Pull-to-refresh below is a touch gesture (works on phones / touchscreens).
+             This button covers desktops where there's no swipe gesture available. -->
+        <Button Grid.Row="0" Text="Refresh" Command="{Binding RefreshCommand}" Margin="16,8,16,4" />
+
+        <RefreshView Grid.Row="1"
+                     Command="{Binding RefreshCommand}"
+                     IsRefreshing="{Binding IsRefreshing}">
+            <CollectionView ItemsSource="{Binding Todos}"
+                            SelectionMode="Single"
+                            SelectionChangedCommand="{Binding SelectCommand}"
+                            SelectionChangedCommandParameter="{Binding Source={RelativeSource Self}, Path=SelectedItem}"
+                            RemainingItemsThreshold="5"
+                            RemainingItemsThresholdReachedCommand="{Binding LoadMoreCommand}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="grpc:Todo">
+                        <Grid Padding="16,10" RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto" RowSpacing="2">
+                            <Label Grid.Row="0" Grid.Column="0" Text="{Binding Date, StringFormat='{0:yyyy-MM-dd HH:mm}'}" FontAttributes="Bold" />
+                            <Label Grid.Row="0" Grid.Column="1" Text="{Binding Type}" TextColor="Gray" />
+                            <Label Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Text="{Binding Description}" />
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+
+        <Label Grid.Row="2" Text="{Binding Status}" TextColor="Gray" Padding="16,8" />
+
+    </Grid>
+</ContentPage>

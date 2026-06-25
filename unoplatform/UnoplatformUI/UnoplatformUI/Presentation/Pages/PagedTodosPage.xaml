@@ -1,0 +1,58 @@
+<Page x:Class="UnoplatformUI.Presentation.Pages.PagedTodosPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:UnoplatformUI.Presentation.Pages"
+      xmlns:grpc="using:BackendUiEval.Grpc"
+      NavigationCacheMode="Disabled"
+      Background="{ThemeResource BackgroundBrush}">
+  <Page.Resources>
+    <local:TimestampDisplayConverter x:Key="TimestampDisplay" />
+  </Page.Resources>
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <TextBlock Grid.Row="0" Text="Paged" FontSize="22" FontWeight="Bold" Padding="16,12,16,0" />
+
+    <Button Grid.Row="1" Content="Refresh" Command="{Binding RefreshCommand}"
+            Margin="16,8,16,4" />
+
+    <RefreshContainer Grid.Row="2" RefreshRequested="OnRefreshRequested">
+      <ListView ItemsSource="{Binding Todos}"
+                SelectionMode="Single"
+                ItemClick="OnItemClick"
+                IsItemClickEnabled="True">
+        <ListView.ItemTemplate>
+          <DataTemplate>
+            <Grid Padding="0,6">
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+              </Grid.RowDefinitions>
+              <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="{Binding Date, Converter={StaticResource TimestampDisplay}}" FontWeight="SemiBold" />
+                <TextBlock Grid.Column="1" Text="{Binding Type}" Foreground="Gray" />
+              </Grid>
+              <TextBlock Grid.Row="1" Text="{Binding Description}" />
+            </Grid>
+          </DataTemplate>
+        </ListView.ItemTemplate>
+      </ListView>
+    </RefreshContainer>
+
+    <Button Grid.Row="3" Content="{Binding LoadMoreLabel}" Command="{Binding LoadMoreCommand}"
+            Visibility="{Binding LoadMoreVisibility}"
+            Margin="16,4" />
+
+    <TextBlock Grid.Row="4" Text="{Binding Status}" Foreground="Gray" Padding="16,8" />
+  </Grid>
+</Page>

@@ -1,0 +1,96 @@
+@page "/paged"
+@inject BackendClient Backend
+@inject NavigationManager Nav
+@inject TodoSelectionService Selection
+
+<h1 class="page-title">Paged</h1>
+
+<button class="btn btn-secondary" @onclick="RefreshAsync" disabled="@busy">
+    @(busy ? "Loading…" : "Refresh")
+</button>
+
+@if (!string.IsNullOrEmpty(status))
+{
+    <p class="status">@status</p>
+}
+
+<ul class="todo-list">
+    @foreach (var t in todos)
+    {
+        <li class="todo-row" @onclick="() => Open(t)">
+            <div class="todo-row-top">
+                <span>@t.Date.ToDateTime().ToLocalTime().ToString("yyyy-MM-dd HH:mm")</span>
+                <span class="todo-row-type">@t.Type</span>
+            </div>
+            <div class="todo-row-desc">@t.Description</div>
+        </li>
+    }
+</ul>
+
+@if (todos.Count > 0 && todos.Count < total)
+{
+    <button class="btn btn-secondary" @onclick="LoadMoreAsync" disabled="@busy" style="margin-top:12px;">
+        @(busy ? "Loading…" : $"Load more ({todos.Count}/{total})")
+    </button>
+}
+
+@code {
+    private const int PageSize = 30;
+    private List<Todo> todos = new();
+    private int total;
+    private bool busy;
+    private string? status;
+
+    protected override async Task OnInitializedAsync() => await RefreshAsync();
+
+    private async Task RefreshAsync()
+    {
+        try
+        {
+            todos = new();
+            total = 0;
+            busy = true;
+            status = "Loading…";
+            StateHasChanged();
+            var resp = await Backend.Todos.ListPagedAsync(new ListPagedRequest { Offset = 0, Limit = PageSize });
+            todos = resp.Todos.ToList();
+            total = resp.Total;
+            status = $"Refreshed {DateTime.Now:HH:mm:ss} — showing {todos.Count} of {total}.";
+        }
+        catch (Exception ex)
+        {
+            status = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+
+    private async Task LoadMoreAsync()
+    {
+        if (busy) return;
+        try
+        {
+            busy = true;
+            var resp = await Backend.Todos.ListPagedAsync(new ListPagedRequest { Offset = todos.Count, Limit = PageSize });
+            todos.AddRange(resp.Todos);
+            total = resp.Total;
+            status = $"Showing {todos.Count} of {total}.";
+        }
+        catch (Exception ex)
+        {
+            status = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+
+    private void Open(Todo t)
+    {
+        Selection.Selected = t;
+        Nav.NavigateTo("/todo/detail");
+    }
+}

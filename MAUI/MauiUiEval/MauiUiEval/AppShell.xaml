@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="MauiUiEval.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:MauiUiEval.Views"
+    Title="MauiUiEval">
+
+    <TabBar>
+        <Tab Title="New">
+            <ShellContent Route="new" ContentTemplate="{DataTemplate views:NewTodoPage}" />
+        </Tab>
+        <Tab Title="All">
+            <ShellContent Route="all" ContentTemplate="{DataTemplate views:AllTodosPage}" />
+        </Tab>
+        <Tab Title="Paged">
+            <ShellContent Route="paged" ContentTemplate="{DataTemplate views:PagedTodosPage}" />
+        </Tab>
+        <Tab Title="Settings">
+            <ShellContent Route="settings" ContentTemplate="{DataTemplate views:SettingsPage}" />
+        </Tab>
+    </TabBar>
+
+</Shell>

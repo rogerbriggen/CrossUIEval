@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:MauiUiEval.ViewModels"
+             x:Class="MauiUiEval.Views.NewTodoPage"
+             x:DataType="vm:NewTodoViewModel"
+             Title="New todo">
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="12">
+
+            <Label Text="Description" FontAttributes="Bold" />
+            <Entry Text="{Binding Description}" Placeholder="What needs doing?" />
+
+            <Label Text="Detail" FontAttributes="Bold" />
+            <Editor Text="{Binding Detail}" Placeholder="Longer notes…" HeightRequest="120" AutoSize="TextChanges" />
+
+            <Label Text="Type" FontAttributes="Bold" />
+            <Picker ItemsSource="{Binding TodoTypes}" SelectedItem="{Binding Type}" />
+
+            <Label Text="Person" FontAttributes="Bold" />
+            <Picker ItemsSource="{Binding Persons}" SelectedItem="{Binding Person}" />
+
+            <Label Text="State" FontAttributes="Bold" />
+            <Picker ItemsSource="{Binding TodoStates}" SelectedItem="{Binding State}" />
+
+            <Button Text="Create" Command="{Binding SubmitCommand}" Margin="0,12,0,0" />
+            <Label Text="{Binding Status}" TextColor="Gray" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

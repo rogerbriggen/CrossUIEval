@@ -1,0 +1,89 @@
+@page "/"
+@inject BackendClient Backend
+
+<h1 class="page-title">New todo</h1>
+
+<div class="field">
+    <label class="field-label" for="desc">Description</label>
+    <input id="desc" type="text" @bind="description" @bind:event="oninput" placeholder="What needs doing?" />
+</div>
+
+<div class="field">
+    <label class="field-label" for="detail">Detail</label>
+    <textarea id="detail" @bind="detail" placeholder="Longer notes…"></textarea>
+</div>
+
+<div class="field">
+    <label class="field-label" for="type">Type</label>
+    <select id="type" @bind="type">
+        @foreach (var t in todoTypes) { <option value="@t">@t</option> }
+    </select>
+</div>
+
+<div class="field">
+    <label class="field-label" for="person">Person</label>
+    <select id="person" @bind="person">
+        @foreach (var p in persons) { <option value="@p">@p</option> }
+    </select>
+</div>
+
+<div class="field">
+    <label class="field-label" for="state">State</label>
+    <select id="state" @bind="state">
+        @foreach (var s in todoStates) { <option value="@s">@s</option> }
+    </select>
+</div>
+
+<button class="btn" @onclick="SubmitAsync" disabled="@(!CanSubmit || submitting)">
+    @(submitting ? "Submitting…" : "Create")
+</button>
+
+@if (!string.IsNullOrEmpty(status))
+{
+    <p class="status">@status</p>
+}
+
+@code {
+    private string description = "";
+    private string detail = "";
+    private TodoType type = TodoType.Work;
+    private Person person = Person.Person1;
+    private TodoState state = TodoState.Ready;
+    private string? status;
+    private bool submitting;
+
+    private static readonly TodoType[] todoTypes = { TodoType.Shopping, TodoType.Work, TodoType.SpareTime };
+    private static readonly Person[] persons = { Person.Person1, Person.Person2 };
+    private static readonly TodoState[] todoStates = { TodoState.Ready, TodoState.InProgress, TodoState.Done };
+
+    private bool CanSubmit => !string.IsNullOrWhiteSpace(description);
+
+    private async Task SubmitAsync()
+    {
+        try
+        {
+            submitting = true;
+            status = "Submitting…";
+            var created = await Backend.Todos.CreateTodoAsync(new Todo
+            {
+                Description = description,
+                Detail = detail,
+                Type = type,
+                Person = person,
+                State = state,
+                Date = Timestamp.FromDateTime(DateTime.UtcNow),
+            });
+            status = $"Created todo #{created.Id}.";
+            description = "";
+            detail = "";
+        }
+        catch (Exception ex)
+        {
+            status = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            submitting = false;
+        }
+    }
+}

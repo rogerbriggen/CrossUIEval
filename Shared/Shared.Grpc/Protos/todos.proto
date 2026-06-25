@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+option csharp_namespace = "BackendUiEval.Grpc";
+
+package todos;
+
+import "google/protobuf/timestamp.proto";
+import "common.proto";
+
+service TodoService {
+  // Server assigns the id and (if unset) the date. Client-provided id is ignored.
+  rpc CreateTodo (Todo) returns (Todo);
+
+  // All todos in one shot, newest first. ~10k entries.
+  rpc ListAll (ListAllRequest) returns (ListTodosResponse);
+
+  // Slice [offset, offset+limit), newest first. total reflects the current full count.
+  rpc ListPaged (ListPagedRequest) returns (ListTodosResponse);
+}
+
+message Todo {
+  int32 id = 1;
+  google.protobuf.Timestamp date = 2;
+  string description = 3;
+  string detail = 4;
+  common.TodoType type = 5;
+  common.Person person = 6;
+  common.TodoState state = 7;
+}
+
+message ListAllRequest {}
+
+message ListPagedRequest {
+  int32 offset = 1;
+  int32 limit = 2;
+}
+
+message ListTodosResponse {
+  repeated Todo todos = 1;
+  int32 total = 2;
+}

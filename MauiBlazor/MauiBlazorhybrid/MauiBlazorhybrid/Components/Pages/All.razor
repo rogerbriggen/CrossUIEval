@@ -1,0 +1,64 @@
+@page "/all"
+@inject BackendClient Backend
+@inject NavigationManager Nav
+@inject TodoSelectionService Selection
+
+<h1 class="page-title">All (Person1)</h1>
+
+<button class="btn btn-secondary" @onclick="LoadAsync" disabled="@busy">
+    @(busy ? "Loading…" : "Refresh")
+</button>
+
+@if (!string.IsNullOrEmpty(status))
+{
+    <p class="status">@status</p>
+}
+
+<ul class="todo-list">
+    @foreach (var t in todos)
+    {
+        <li class="todo-row" @onclick="() => Open(t)">
+            <div class="todo-row-top">
+                <span>@t.Date.ToDateTime().ToLocalTime().ToString("yyyy-MM-dd HH:mm")</span>
+                <span class="todo-row-type">@t.Type</span>
+            </div>
+            <div class="todo-row-desc">@t.Description</div>
+        </li>
+    }
+</ul>
+
+@code {
+    private List<Todo> todos = new();
+    private bool busy;
+    private string? status;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            todos = new();             // clear first so the UI goes empty before the call
+            busy = true;
+            status = "Loading…";
+            StateHasChanged();
+            var resp = await Backend.Todos.ListAllAsync(new ListAllRequest());
+            todos = resp.Todos.Where(t => t.Person == Person.Person1).ToList();
+            status = $"Refreshed {DateTime.Now:HH:mm:ss} — {todos.Count} todos for Person1 (of {resp.Total} total).";
+        }
+        catch (Exception ex)
+        {
+            status = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+
+    private void Open(Todo t)
+    {
+        Selection.Selected = t;
+        Nav.NavigateTo("/todo/detail");
+    }
+}

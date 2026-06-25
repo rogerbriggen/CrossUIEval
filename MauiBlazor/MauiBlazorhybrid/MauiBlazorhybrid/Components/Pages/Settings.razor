@@ -1,0 +1,240 @@
+@page "/settings"
+@inject BackendClient Backend
+@inject PersonContext PersonCtx
+
+<h1 class="page-title">Settings</h1>
+
+<p class="field-label">Viewing settings for</p>
+<div class="person-tabs">
+    @foreach (var p in persons)
+    {
+        <div class="person-tab @(p == viewingPerson ? "active" : "")" @onclick="() => SelectPerson(p)">
+            @p
+        </div>
+    }
+</div>
+
+<div class="divider"></div>
+
+<p class="field-label">Accent color (tap to select — current: @accentColor)</p>
+<div class="chips">
+    @foreach (var c in accentColors)
+    {
+        <div class="chip @(c == accentColor ? "selected" : "")"
+             style="background:@ColorHex(c);"
+             @onclick="() => accentColor = c">
+            @c
+        </div>
+    }
+</div>
+
+<div class="divider"></div>
+
+<div class="switch-row"><span>Notifications enabled</span><input type="checkbox" @bind="notificationsEnabled" /></div>
+<div class="switch-row"><span>Dark mode</span><input type="checkbox" @bind="darkMode" /></div>
+<div class="switch-row"><span>Show completed todos</span><input type="checkbox" @bind="showCompletedTodos" /></div>
+
+<div class="divider"></div>
+
+<div class="field"><label class="field-label">Display name</label><input type="text" @bind="displayName" /></div>
+<div class="field"><label class="field-label">Email</label><input type="email" @bind="email" /></div>
+
+<div class="field"><label class="field-label">Signature</label><textarea @bind="signature"></textarea></div>
+<div class="field"><label class="field-label">Default detail template</label><textarea @bind="defaultDetailTemplate"></textarea></div>
+
+<div class="field">
+    <label class="field-label">Default todo type</label>
+    <select @bind="defaultTodoType">
+        @foreach (var t in todoTypes) { <option value="@t">@t</option> }
+    </select>
+</div>
+<div class="field">
+    <label class="field-label">Default state</label>
+    <select @bind="defaultState">
+        @foreach (var s in todoStates) { <option value="@s">@s</option> }
+    </select>
+</div>
+<div class="field">
+    <label class="field-label">Language</label>
+    <select @bind="language">
+        @foreach (var l in languages) { <option value="@l">@l</option> }
+    </select>
+</div>
+<div class="field">
+    <label class="field-label">Page size</label>
+    <select @bind="pageSize">
+        @foreach (var ps in pageSizes) { <option value="@ps">@ps</option> }
+    </select>
+</div>
+
+<div class="divider"></div>
+
+<div class="field"><div class="field-label">User ID</div><div class="readonly-value">@userId</div></div>
+<div class="field"><div class="field-label">Account created</div><div class="readonly-value">@accountCreated</div></div>
+<div class="field"><div class="field-label">Todo count</div><div class="readonly-value">@todoCount</div></div>
+<div class="field"><div class="field-label">App version</div><div class="readonly-value">@appVersion</div></div>
+
+<div class="row-buttons">
+    <button class="btn btn-secondary" @onclick="LoadAsync" disabled="@busy">Reload</button>
+    <button class="btn" @onclick="SaveAsync" disabled="@busy">Save</button>
+</div>
+
+@if (!string.IsNullOrEmpty(status))
+{
+    <p class="status">@status</p>
+}
+
+@code {
+    private static readonly Person[] persons = { Person.Person1, Person.Person2 };
+    private static readonly TodoType[] todoTypes = { TodoType.Shopping, TodoType.Work, TodoType.SpareTime };
+    private static readonly TodoState[] todoStates = { TodoState.Ready, TodoState.InProgress, TodoState.Done };
+    private static readonly Language[] languages = { Language.En, Language.De, Language.Fr, Language.It };
+    private static readonly int[] pageSizes = { 10, 30, 50, 100 };
+    private static readonly AccentColor[] accentColors =
+    {
+        AccentColor.Blue, AccentColor.Green, AccentColor.Red, AccentColor.Orange,
+        AccentColor.Purple, AccentColor.Teal, AccentColor.Pink,
+    };
+
+    private Person viewingPerson = Person.Person1;
+
+    private bool notificationsEnabled;
+    private bool darkMode;
+    private bool showCompletedTodos;
+    private string displayName = "";
+    private string email = "";
+    private string signature = "";
+    private string defaultDetailTemplate = "";
+    private TodoType defaultTodoType;
+    private TodoState defaultState;
+    private Language language;
+    private int pageSize;
+    private AccentColor accentColor;
+
+    private string userId = "";
+    private string accountCreated = "";
+    private int todoCount;
+    private string appVersion = "";
+
+    private string? status;
+    private bool busy;
+
+    protected override async Task OnInitializedAsync()
+    {
+        viewingPerson = PersonCtx.Current;
+        await LoadAsync();
+    }
+
+    private async Task SelectPerson(Person p)
+    {
+        if (viewingPerson == p) return;
+        viewingPerson = p;
+        PersonCtx.Current = p;
+        await LoadAsync();
+    }
+
+    private void ClearFields()
+    {
+        notificationsEnabled = false;
+        darkMode = false;
+        showCompletedTodos = false;
+        displayName = "";
+        email = "";
+        signature = "";
+        defaultDetailTemplate = "";
+        defaultTodoType = default;
+        defaultState = default;
+        language = default;
+        pageSize = 0;
+        accentColor = default;
+        userId = "";
+        accountCreated = "";
+        todoCount = 0;
+        appVersion = "";
+    }
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            ClearFields();
+            busy = true;
+            status = "Loading…";
+            StateHasChanged();
+            var s = await Backend.Settings.GetSettingsAsync(new GetSettingsRequest { Person = viewingPerson });
+            notificationsEnabled = s.NotificationsEnabled;
+            darkMode = s.DarkMode;
+            showCompletedTodos = s.ShowCompletedTodos;
+            displayName = s.DisplayName;
+            email = s.Email;
+            signature = s.Signature;
+            defaultDetailTemplate = s.DefaultDetailTemplate;
+            defaultTodoType = s.DefaultTodoType;
+            defaultState = s.DefaultState;
+            language = s.Language;
+            pageSize = s.PageSize;
+            accentColor = s.AccentColor;
+            userId = s.UserId;
+            accountCreated = s.AccountCreated?.ToDateTime().ToString("yyyy-MM-dd") ?? "";
+            todoCount = s.TodoCount;
+            appVersion = s.AppVersion;
+            status = $"Loaded settings for {viewingPerson}.";
+        }
+        catch (Exception ex)
+        {
+            status = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        try
+        {
+            busy = true;
+            status = "Saving…";
+            var s = new BackendUiEval.Grpc.Settings
+            {
+                Person = viewingPerson,
+                NotificationsEnabled = notificationsEnabled,
+                DarkMode = darkMode,
+                ShowCompletedTodos = showCompletedTodos,
+                DisplayName = displayName,
+                Email = email,
+                Signature = signature,
+                DefaultDetailTemplate = defaultDetailTemplate,
+                DefaultTodoType = defaultTodoType,
+                DefaultState = defaultState,
+                Language = language,
+                PageSize = pageSize,
+                AccentColor = accentColor,
+            };
+            var updated = await Backend.Settings.UpdateSettingsAsync(new UpdateSettingsRequest { Person = viewingPerson, Settings = s });
+            todoCount = updated.TodoCount;
+            status = $"Saved settings for {viewingPerson}.";
+        }
+        catch (Exception ex)
+        {
+            status = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            busy = false;
+        }
+    }
+
+    private static string ColorHex(AccentColor c) => c switch
+    {
+        AccentColor.Blue => "#3F6BD8",
+        AccentColor.Green => "#3CAE5C",
+        AccentColor.Red => "#D84A4A",
+        AccentColor.Orange => "#E8843C",
+        AccentColor.Purple => "#8B5CD8",
+        AccentColor.Teal => "#2EA39A",
+        AccentColor.Pink => "#D85C9A",
+        _ => "#d1d5db",
+    };
+}

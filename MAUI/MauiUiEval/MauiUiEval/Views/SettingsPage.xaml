@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:MauiUiEval.ViewModels"
+             xmlns:conv="clr-namespace:MauiUiEval.Converters"
+             xmlns:grpc="clr-namespace:BackendUiEval.Grpc;assembly=Shared.Grpc"
+             x:Class="MauiUiEval.Views.SettingsPage"
+             x:Name="settingsPage"
+             x:DataType="vm:SettingsViewModel"
+             Title="Settings">
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <conv:AccentColorToBrushConverter x:Key="AccentColorToBrush" />
+            <conv:SelectedAccentConverter x:Key="SelectedAccent" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="14">
+
+            <Label Text="Viewing settings for" FontAttributes="Bold" />
+            <!-- Swipe horizontally to switch between Person1 and Person2. -->
+            <CarouselView ItemsSource="{Binding Persons}"
+                          CurrentItem="{Binding ViewingPerson, Mode=TwoWay}"
+                          HeightRequest="110"
+                          IndicatorView="personIndicator"
+                          Loop="False">
+                <CarouselView.ItemTemplate>
+                    <DataTemplate x:DataType="grpc:Person">
+                        <Border StrokeShape="RoundRectangle 12" Stroke="LightGray" StrokeThickness="1"
+                                Margin="6" Padding="20" BackgroundColor="WhiteSmoke">
+                            <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="4">
+                                <Label Text="{Binding .}" FontSize="22" FontAttributes="Bold"
+                                       HorizontalOptions="Center" />
+                                <Label Text="swipe to switch" FontSize="11" TextColor="Gray"
+                                       HorizontalOptions="Center" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </CarouselView.ItemTemplate>
+            </CarouselView>
+            <IndicatorView x:Name="personIndicator" IndicatorColor="LightGray" SelectedIndicatorColor="Gray"
+                           HorizontalOptions="Center" />
+
+            <BoxView HeightRequest="1" Color="LightGray" />
+
+            <!-- Accent color picker: tap a chip to select; selected chip gets a thick black border.
+                 Driven by TapGestureRecognizer + a comparison converter, not CollectionView selection
+                 (which didn't reliably propagate selection visuals on Windows). -->
+            <Label Text="Accent color" FontAttributes="Bold" />
+            <Label Text="{Binding AccentColor, StringFormat='Selected: {0}'}" TextColor="Gray" FontSize="12" />
+            <ScrollView Orientation="Horizontal">
+                <HorizontalStackLayout BindableLayout.ItemsSource="{Binding AccentColors}" Spacing="10" Padding="2">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="grpc:AccentColor">
+                            <Border StrokeShape="RoundRectangle 10"
+                                    Background="{Binding ., Converter={StaticResource AccentColorToBrush}}"
+                                    WidthRequest="90" HeightRequest="50" Padding="0">
+                                <Border.Stroke>
+                                    <MultiBinding Converter="{StaticResource SelectedAccent}" ConverterParameter="Stroke">
+                                        <Binding Path="." />
+                                        <Binding Path="BindingContext.AccentColor" Source="{x:Reference settingsPage}" />
+                                    </MultiBinding>
+                                </Border.Stroke>
+                                <Border.StrokeThickness>
+                                    <MultiBinding Converter="{StaticResource SelectedAccent}" ConverterParameter="Thickness">
+                                        <Binding Path="." />
+                                        <Binding Path="BindingContext.AccentColor" Source="{x:Reference settingsPage}" />
+                                    </MultiBinding>
+                                </Border.StrokeThickness>
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Command="{Binding Source={x:Reference settingsPage}, Path=BindingContext.SelectAccentColorCommand}"
+                                        CommandParameter="{Binding .}" />
+                                </Border.GestureRecognizers>
+                                <Label Text="{Binding .}" TextColor="White" FontAttributes="Bold"
+                                       HorizontalOptions="Center" VerticalOptions="Center" />
+                            </Border>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </HorizontalStackLayout>
+            </ScrollView>
+
+            <BoxView HeightRequest="1" Color="LightGray" />
+
+            <!-- Switches -->
+            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="8">
+                <Label Grid.Row="0" Grid.Column="0" Text="Notifications enabled" VerticalOptions="Center" />
+                <Switch Grid.Row="0" Grid.Column="1" IsToggled="{Binding NotificationsEnabled}" />
+                <Label Grid.Row="1" Grid.Column="0" Text="Dark mode" VerticalOptions="Center" />
+                <Switch Grid.Row="1" Grid.Column="1" IsToggled="{Binding DarkMode}" />
+                <Label Grid.Row="2" Grid.Column="0" Text="Show completed todos" VerticalOptions="Center" />
+                <Switch Grid.Row="2" Grid.Column="1" IsToggled="{Binding ShowCompletedTodos}" />
+            </Grid>
+
+            <BoxView HeightRequest="1" Color="LightGray" />
+
+            <!-- Single-line text -->
+            <Label Text="Display name" FontAttributes="Bold" />
+            <Entry Text="{Binding DisplayName}" />
+            <Label Text="Email" FontAttributes="Bold" />
+            <Entry Text="{Binding Email}" Keyboard="Email" />
+
+            <!-- Multi-line text -->
+            <Label Text="Signature" FontAttributes="Bold" />
+            <Editor Text="{Binding Signature}" HeightRequest="100" AutoSize="TextChanges" />
+            <Label Text="Default detail template" FontAttributes="Bold" />
+            <Editor Text="{Binding DefaultDetailTemplate}" HeightRequest="100" AutoSize="TextChanges" />
+
+            <!-- Dropdowns -->
+            <Label Text="Default todo type" FontAttributes="Bold" />
+            <Picker ItemsSource="{Binding TodoTypes}" SelectedItem="{Binding DefaultTodoType}" />
+            <Label Text="Default state" FontAttributes="Bold" />
+            <Picker ItemsSource="{Binding TodoStates}" SelectedItem="{Binding DefaultState}" />
+            <Label Text="Language" FontAttributes="Bold" />
+            <Picker ItemsSource="{Binding Languages}" SelectedItem="{Binding Language}" />
+            <Label Text="Page size" FontAttributes="Bold" />
+            <Picker ItemsSource="{Binding PageSizes}" SelectedItem="{Binding PageSize}" />
+
+            <BoxView HeightRequest="1" Color="LightGray" />
+
+            <!-- Read-only -->
+            <Label Text="User ID" FontAttributes="Bold" />
+            <Label Text="{Binding UserId}" TextColor="Gray" />
+            <Label Text="Account created" FontAttributes="Bold" />
+            <Label Text="{Binding AccountCreated}" TextColor="Gray" />
+            <Label Text="Todo count" FontAttributes="Bold" />
+            <Label Text="{Binding TodoCount}" TextColor="Gray" />
+            <Label Text="App version" FontAttributes="Bold" />
+            <Label Text="{Binding AppVersion}" TextColor="Gray" />
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="10" Margin="0,12,0,0">
+                <Button Grid.Column="0" Text="Reload" Command="{Binding ReloadCommand}" />
+                <Button Grid.Column="1" Text="Save" Command="{Binding SaveCommand}" />
+            </Grid>
+            <Label Text="{Binding Status}" TextColor="Gray" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

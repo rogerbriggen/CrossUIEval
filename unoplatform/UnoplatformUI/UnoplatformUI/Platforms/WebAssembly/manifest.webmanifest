@@ -1,0 +1,10 @@
+{
+  "background_color": "#ffffff",
+  "description": "UnoplatformUI",
+  "display": "standalone",
+  "name": "UnoplatformUI",
+  "short_name": "UnoplatformUI",
+  "start_url": "/index.html",
+  "theme_color": "#ffffff",
+  "scope": "/"
+}

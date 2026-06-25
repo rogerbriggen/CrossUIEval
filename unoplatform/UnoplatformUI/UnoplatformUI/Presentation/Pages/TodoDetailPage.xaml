@@ -1,0 +1,33 @@
+<Page x:Class="UnoplatformUI.Presentation.Pages.TodoDetailPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:UnoplatformUI.Presentation.Pages"
+      NavigationCacheMode="Disabled"
+      Background="{ThemeResource BackgroundBrush}">
+  <ScrollViewer>
+    <StackPanel Padding="20" Spacing="10">
+      <HyperlinkButton Content="← Back" Click="OnBackClick" />
+      <TextBlock Text="Todo detail" FontSize="22" FontWeight="Bold" />
+
+      <TextBlock x:Name="NoSelectionText" Foreground="Gray"
+                 Text="No todo selected." Visibility="Collapsed" />
+
+      <StackPanel x:Name="DetailPanel" Spacing="8">
+        <TextBlock Text="ID" FontWeight="SemiBold" />
+        <TextBlock x:Name="IdText" />
+        <TextBlock Text="Date" FontWeight="SemiBold" />
+        <TextBlock x:Name="DateText" />
+        <TextBlock Text="Type" FontWeight="SemiBold" />
+        <TextBlock x:Name="TypeText" />
+        <TextBlock Text="Person" FontWeight="SemiBold" />
+        <TextBlock x:Name="PersonText" />
+        <TextBlock Text="State" FontWeight="SemiBold" />
+        <TextBlock x:Name="StateText" />
+        <TextBlock Text="Description" FontWeight="SemiBold" />
+        <TextBlock x:Name="DescriptionText" TextWrapping="Wrap" />
+        <TextBlock Text="Detail" FontWeight="SemiBold" />
+        <TextBlock x:Name="DetailText" TextWrapping="Wrap" />
+      </StackPanel>
+    </StackPanel>
+  </ScrollViewer>
+</Page>

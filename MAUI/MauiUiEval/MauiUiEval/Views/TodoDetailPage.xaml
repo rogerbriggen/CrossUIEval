@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:MauiUiEval.ViewModels"
+             x:Class="MauiUiEval.Views.TodoDetailPage"
+             x:DataType="vm:TodoDetailViewModel"
+             Title="Todo detail">
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="12">
+
+            <Label Text="ID" FontAttributes="Bold" />
+            <Label Text="{Binding Todo.Id}" />
+
+            <Label Text="Date" FontAttributes="Bold" />
+            <Label Text="{Binding Todo.Date, StringFormat='{0:yyyy-MM-dd HH:mm}'}" />
+
+            <Label Text="Type" FontAttributes="Bold" />
+            <Label Text="{Binding Todo.Type}" />
+
+            <Label Text="Person" FontAttributes="Bold" />
+            <Label Text="{Binding Todo.Person}" />
+
+            <Label Text="State" FontAttributes="Bold" />
+            <Label Text="{Binding Todo.State}" />
+
+            <Label Text="Description" FontAttributes="Bold" />
+            <Label Text="{Binding Todo.Description}" />
+
+            <Label Text="Detail" FontAttributes="Bold" />
+            <Label Text="{Binding Todo.Detail}" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

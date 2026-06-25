@@ -1,0 +1,30 @@
+@page "/todo/detail"
+@inject TodoSelectionService Selection
+@inject NavigationManager Nav
+
+<a class="detail-back" @onclick="Back" @onclick:preventDefault>← Back</a>
+
+<h1 class="page-title">Todo detail</h1>
+
+@if (todo is null)
+{
+    <p class="status">No todo selected. Pick one from <a href="all">All</a> or <a href="paged">Paged</a>.</p>
+}
+else
+{
+    <div class="field"><div class="field-label">ID</div><div>@todo.Id</div></div>
+    <div class="field"><div class="field-label">Date</div><div>@todo.Date.ToDateTime().ToLocalTime().ToString("yyyy-MM-dd HH:mm")</div></div>
+    <div class="field"><div class="field-label">Type</div><div>@todo.Type</div></div>
+    <div class="field"><div class="field-label">Person</div><div>@todo.Person</div></div>
+    <div class="field"><div class="field-label">State</div><div>@todo.State</div></div>
+    <div class="field"><div class="field-label">Description</div><div>@todo.Description</div></div>
+    <div class="field"><div class="field-label">Detail</div><div>@todo.Detail</div></div>
+}
+
+@code {
+    private Todo? todo;
+
+    protected override void OnInitialized() => todo = Selection.Selected;
+
+    private void Back() => Nav.NavigateTo("/all");
+}

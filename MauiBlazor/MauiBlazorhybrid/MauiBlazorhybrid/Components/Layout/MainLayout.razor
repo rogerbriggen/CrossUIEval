@@ -1,12 +1,24 @@
 @inherits LayoutComponentBase
 
-<nav class="nav">
-    <NavLink class="nav-link" href="" Match="NavLinkMatch.All">New</NavLink>
-    <NavLink class="nav-link" href="all">All</NavLink>
-    <NavLink class="nav-link" href="paged">Paged</NavLink>
-    <NavLink class="nav-link" href="settings">Settings</NavLink>
-</nav>
-
 <main class="content">
     @Body
 </main>
+
+<nav class="nav">
+    <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+        <span class="nav-icon" aria-hidden="true">&#x2795;</span>
+        <span class="nav-label">New</span>
+    </NavLink>
+    <NavLink class="nav-link" href="all">
+        <span class="nav-icon" aria-hidden="true">&#x2630;</span>
+        <span class="nav-label">All</span>
+    </NavLink>
+    <NavLink class="nav-link" href="paged">
+        <span class="nav-icon" aria-hidden="true">&#x25A4;</span>
+        <span class="nav-label">Paged</span>
+    </NavLink>
+    <NavLink class="nav-link" href="settings">
+        <span class="nav-icon" aria-hidden="true">&#x2699;</span>
+        <span class="nav-label">Settings</span>
+    </NavLink>
+</nav>

@@ -1,0 +1,199 @@
+name: Build All
+
+on:
+  push:
+    branches:
+      - main
+      - 'ci/**'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  DOTNET_NOLOGO: 'true'
+  DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+  CONFIGURATION: 'Release'
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Windows: Backend + MAUI/Blazor/Uno (Windows desktop) + Android (APKs)
+  # ---------------------------------------------------------------------------
+  build-windows-android:
+    name: Windows + Android
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET ${{ env.DOTNET_VERSION }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Setup Java (Android)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install MAUI workloads (android + windows)
+        run: dotnet workload install maui-android maui-windows --source https://api.nuget.org/v3/index.json
+
+      # -------- Backend --------
+      - name: Publish Backend (win-x64)
+        run: >
+          dotnet publish Backend/BackendUiEval/BackendUiEval/BackendUiEval.csproj
+          -c ${{ env.CONFIGURATION }}
+          -r win-x64
+          --self-contained false
+          -o artifacts/backend-win-x64
+
+      # -------- MAUI --------
+      - name: Publish MAUI - Windows
+        run: >
+          dotnet publish MAUI/MauiUiEval/MauiUiEval/MauiUiEval.csproj
+          -c ${{ env.CONFIGURATION }}
+          -f net10.0-windows10.0.19041.0
+          -p:WindowsPackageType=None
+          -o artifacts/maui-windows
+
+      - name: Publish MAUI - Android (APK)
+        run: >
+          dotnet publish MAUI/MauiUiEval/MauiUiEval/MauiUiEval.csproj
+          -c ${{ env.CONFIGURATION }}
+          -f net10.0-android
+          -p:AndroidPackageFormats=apk
+          -p:AndroidKeyStore=false
+          -o artifacts/maui-android
+
+      # -------- MauiBlazor Hybrid --------
+      - name: Publish MauiBlazor - Windows
+        run: >
+          dotnet publish MauiBlazor/MauiBlazorhybrid/MauiBlazorhybrid/MauiBlazorhybrid.csproj
+          -c ${{ env.CONFIGURATION }}
+          -f net10.0-windows10.0.19041.0
+          -p:WindowsPackageType=None
+          -o artifacts/mauiblazor-windows
+
+      - name: Publish MauiBlazor - Android (APK)
+        run: >
+          dotnet publish MauiBlazor/MauiBlazorhybrid/MauiBlazorhybrid/MauiBlazorhybrid.csproj
+          -c ${{ env.CONFIGURATION }}
+          -f net10.0-android
+          -p:AndroidPackageFormats=apk
+          -p:AndroidKeyStore=false
+          -o artifacts/mauiblazor-android
+
+      # -------- Uno Platform --------
+      - name: Publish Uno - Desktop (Windows)
+        working-directory: unoplatform/UnoplatformUI
+        run: >
+          dotnet publish UnoplatformUI/UnoplatformUI.csproj
+          -c ${{ env.CONFIGURATION }}
+          -f net10.0-desktop
+          -o ../../artifacts/uno-desktop-windows
+
+      - name: Publish Uno - Android (APK)
+        working-directory: unoplatform/UnoplatformUI
+        run: >
+          dotnet publish UnoplatformUI/UnoplatformUI.csproj
+          -c ${{ env.CONFIGURATION }}
+          -f net10.0-android
+          -p:AndroidPackageFormats=apk
+          -p:AndroidKeyStore=false
+          -o ../../artifacts/uno-android
+
+      # -------- Upload --------
+      - name: Upload Windows + Android artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-android-builds
+          path: artifacts/**
+          if-no-files-found: warn
+
+  # ---------------------------------------------------------------------------
+  # macOS: Backend + MAUI/Blazor/Uno iOS (build only, unsigned)
+  # ---------------------------------------------------------------------------
+  build-ios:
+    name: iOS (macOS)
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET ${{ env.DOTNET_VERSION }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install MAUI workloads (full bundle — projects have multi-TFM android+ios+maccatalyst so restore needs them all)
+        run: dotnet workload install maui --source https://api.nuget.org/v3/index.json
+
+      # -------- Backend (matching backend for iOS builds) --------
+      - name: Publish Backend (osx-arm64)
+        run: >
+          dotnet publish Backend/BackendUiEval/BackendUiEval/BackendUiEval.csproj
+          -c ${{ env.CONFIGURATION }}
+          -r osx-arm64
+          --self-contained false
+          -o artifacts/backend-osx-arm64
+
+      # -------- MAUI iOS (build only, simulator runtime, no signing) --------
+      - name: Build MAUI - iOS (simulator, unsigned)
+        run: >
+          dotnet build MAUI/MauiUiEval/MauiUiEval/MauiUiEval.csproj
+          -c ${{ env.CONFIGURATION }}
+          -f net10.0-ios
+          -p:RuntimeIdentifier=iossimulator-arm64
+          -p:CodesignKey=
+          -p:CodesignProvision=
+
+      - name: Stage MAUI iOS app bundle
+        run: |
+          mkdir -p artifacts/maui-ios
+          cp -R MAUI/MauiUiEval/MauiUiEval/bin/${{ env.CONFIGURATION }}/net10.0-ios/iossimulator-arm64/*.app artifacts/maui-ios/ || true
+
+      # -------- MauiBlazor iOS --------
+      - name: Build MauiBlazor - iOS (simulator, unsigned)
+        run: >
+          dotnet build MauiBlazor/MauiBlazorhybrid/MauiBlazorhybrid/MauiBlazorhybrid.csproj
+          -c ${{ env.CONFIGURATION }}
+          -f net10.0-ios
+          -p:RuntimeIdentifier=iossimulator-arm64
+          -p:CodesignKey=
+          -p:CodesignProvision=
+
+      - name: Stage MauiBlazor iOS app bundle
+        run: |
+          mkdir -p artifacts/mauiblazor-ios
+          cp -R MauiBlazor/MauiBlazorhybrid/MauiBlazorhybrid/bin/${{ env.CONFIGURATION }}/net10.0-ios/iossimulator-arm64/*.app artifacts/mauiblazor-ios/ || true
+
+      # -------- Uno iOS --------
+      - name: Build Uno - iOS (simulator, unsigned)
+        working-directory: unoplatform/UnoplatformUI
+        run: >
+          dotnet build UnoplatformUI/UnoplatformUI.csproj
+          -c ${{ env.CONFIGURATION }}
+          -f net10.0-ios
+          -p:RuntimeIdentifier=iossimulator-arm64
+          -p:CodesignKey=
+          -p:CodesignProvision=
+
+      - name: Stage Uno iOS app bundle
+        run: |
+          mkdir -p artifacts/uno-ios
+          cp -R unoplatform/UnoplatformUI/UnoplatformUI/bin/${{ env.CONFIGURATION }}/net10.0-ios/iossimulator-arm64/*.app artifacts/uno-ios/ || true
+
+      # -------- Upload --------
+      - name: Upload iOS artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-builds
+          path: artifacts/**
+          if-no-files-found: warn

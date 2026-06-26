@@ -277,9 +277,9 @@ Project: [Avalonia/AvaloniaUiEval/AvaloniaUiEval.csproj](Avalonia/AvaloniaUiEval
 |---|---|---|
 | `AvaloniaUiEval` | net10.0 | Core: services, view-models, views, `App`. All heads reference it. |
 | `AvaloniaUiEval.Desktop` | net10.0 | Windows/macOS/Linux head. Wired and verified. |
-| `AvaloniaUiEval.Android` | net10.0-android | Android head. Builds; the `BackendClient` `#if ANDROID` switch maps `localhost` → `10.0.2.2` for the emulator. |
+| `AvaloniaUiEval.Android` | net10.0-android | Android head. Builds; `BackendClient` uses `OperatingSystem.IsAndroid()` to map `localhost` → `10.0.2.2` for the emulator (runtime check, since the core library is single-target net10.0). |
 | `AvaloniaUiEval.iOS` | net10.0-ios | iOS head. Restores on Windows; full build requires the iOS workload + Mac. |
-| `AvaloniaUiEval.Browser` | net10.0-browser | Skeleton only — gRPC HTTP/2 needs gRPC-Web in a browser; deferred. |
+| `AvaloniaUiEval.Browser` | net10.0-browser | WASM head. `BackendClient` uses `OperatingSystem.IsBrowser()` to swap in a `GrpcWebHandler` and talks gRPC-Web; needs the backend's gRPC-Web middleware + CORS (now enabled). |
 
 **Namespace rename.** Default Avalonia templates put everything under `namespace Avalonia`, which collides with the framework's root namespace. The whole solution was renamed to `AvaloniaUiEval` (project names, assembly names, `RootNamespace`, and every `.cs` / `.axaml` namespace). The folder under `Avalonia/` is `AvaloniaUiEval/` (and `.Desktop`, `.Android`, etc.). The outer `Avalonia/` folder stays for parity with `MAUI/` / `unoplatform/`.
 
@@ -287,7 +287,7 @@ Project: [Avalonia/AvaloniaUiEval/AvaloniaUiEval.csproj](Avalonia/AvaloniaUiEval
 
 | Folder | Contents |
 |---|---|
-| `Services/` | [BackendClient](Avalonia/AvaloniaUiEval/Services/BackendClient.cs) (same shape as MAUI — h2c switch, 16 MB max message, `%LOCALAPPDATA%/CrossUIEval/backend.json` persistence, `#if ANDROID` host switch), [PersonContext](Avalonia/AvaloniaUiEval/Services/PersonContext.cs), `NavigationService` (Avalonia-specific — raises detail/back/tab events the Shell listens to) |
+| `Services/` | [BackendClient](Avalonia/AvaloniaUiEval/Services/BackendClient.cs) (same shape as MAUI — h2c switch, 16 MB max message, `%LOCALAPPDATA%/CrossUIEval/backend.json` persistence guarded for WASM, runtime Android/browser detection, `GrpcWebHandler` under WASM), [PersonContext](Avalonia/AvaloniaUiEval/Services/PersonContext.cs), `NavigationService` (Avalonia-specific — raises detail/back/tab events the Shell listens to) |
 | `ViewModels/` | [ViewModelBase](Avalonia/AvaloniaUiEval/ViewModels/ViewModelBase.cs) inherits `CommunityToolkit.Mvvm.ComponentModel.ObservableObject`; one VM per page; `ShellViewModel` owns tabs + detail-stack; `AccentChipVm` for per-chip accent rendering |
 | `Views/` | One `.axaml` + code-behind per page; `ShellView` is the root `UserControl`; `MainWindow` is the desktop window that hosts `ShellView` |
 | `Converters/` | [TimestampDisplayConverter](Avalonia/AvaloniaUiEval/Converters/TimestampDisplayConverter.cs) (formats `Google.Protobuf.WellKnownTypes.Timestamp` for list rows) |
@@ -324,7 +324,15 @@ Not wired on Desktop — explicit Refresh button only, same fallback as MauiBlaz
 - Cross-assembly XAML namespaces use `clr-namespace:BackendUiEval.Grpc;assembly=Shared.Grpc` (not `using:` — Avalonia's `using:` doesn't support `;assembly=`).
 - `TextBox.Watermark` is obsolete in Avalonia — use `PlaceholderText`.
 
+### Browser head specifics
+
+WASM can't speak HTTP/2 frames, so the Browser head uses gRPC-Web instead of native gRPC. Two coordinated changes make it work:
+
+- **Backend** (`Backend/BackendUiEval/BackendUiEval/Program.cs`): the Kestrel listener is `Http1AndHttp2` (was `Http2`) so the same port `5080` serves both native gRPC (h2c) and gRPC-Web (HTTP/1.1). `app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true })` translates gRPC-Web requests, and an open CORS policy exposes the `Grpc-Status` / `Grpc-Message` / `Grpc-Encoding` / `Grpc-Accept-Encoding` headers — required because the browser loads from the WASM dev server (different origin) and reads those headers off the response.
+- **Client** (`Avalonia/AvaloniaUiEval/Services/BackendClient.cs`): `Grpc.Net.Client.Web` is referenced; the channel's `HttpHandler` is set to `new GrpcWebHandler(GrpcWebMode.GrpcWeb, new HttpClientHandler())` when `OperatingSystem.IsBrowser()`. Filesystem persistence (`%LOCALAPPDATA%/CrossUIEval/backend.json`) is guarded — under WASM `Environment.GetFolderPath` can throw or return empty, in which case the client runs with in-memory defaults only.
+
+Other heads are unaffected: the gRPC-Web middleware is additive, the Kestrel protocol bump still serves native h2c, and the runtime `IsBrowser()` check keeps the desktop/Android/iOS channels on plain HTTP/2.
+
 Later todo:
 
 * MAUI Angular with WebView
-* Avalonia Browser head (needs gRPC-Web)

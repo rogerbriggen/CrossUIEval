@@ -9,16 +9,29 @@ builder.Services.AddGrpc(options =>
     options.MaxReceiveMessageSize = 16 * 1024 * 1024;
 });
 
+// Browser clients (Avalonia.Browser etc.) reach gRPC over gRPC-Web on HTTP/1.1
+// and must satisfy CORS since they're loaded from a different origin (dev server port).
+// Open policy is fine for a development backend.
+const string BrowserCors = "BrowserCors";
+builder.Services.AddCors(o => o.AddPolicy(BrowserCors, p => p
+    .AllowAnyOrigin()
+    .AllowAnyHeader()
+    .AllowAnyMethod()
+    .WithExposedHeaders("Grpc-Status", "Grpc-Message", "Grpc-Encoding", "Grpc-Accept-Encoding")));
+
 builder.Services.AddSingleton<TodoStore>();
 builder.Services.AddHostedService<TodoTickerService>();
 
 builder.WebHost.ConfigureKestrel(options =>
 {
-    // HTTP/2 cleartext for gRPC during development; MAUI/clients connect to http://localhost:5080
-    options.ListenLocalhost(5080, listen => listen.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http2);
+    // Http1AndHttp2 so the same port serves native gRPC (h2c) and gRPC-Web (HTTP/1.1).
+    options.ListenLocalhost(5080, listen => listen.Protocols = Microsoft.AspNetCore.Server.Kestrel.Core.HttpProtocols.Http1AndHttp2);
 });
 
 var app = builder.Build();
+
+app.UseCors(BrowserCors);
+app.UseGrpcWeb(new GrpcWebOptions { DefaultEnabled = true });
 
 app.MapGrpcService<SettingsService>();
 app.MapGrpcService<TodoGrpcService>();

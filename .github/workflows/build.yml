@@ -106,6 +106,23 @@ jobs:
           -p:AndroidKeyStore=false
           -o ../../artifacts/uno-android
 
+      # -------- Avalonia Desktop (Windows) --------
+      - name: Publish Avalonia - Desktop (Windows)
+        run: >
+          dotnet publish Avalonia/AvaloniaUiEval.Desktop/AvaloniaUiEval.Desktop.csproj
+          -c ${{ env.CONFIGURATION }}
+          -r win-x64
+          --self-contained false
+          -o artifacts/avalonia-desktop-windows
+
+      # -------- Avalonia Android (APK) --------
+      - name: Publish Avalonia - Android (APK)
+        run: >
+          dotnet publish Avalonia/AvaloniaUiEval.Android/AvaloniaUiEval.Android.csproj
+          -c ${{ env.CONFIGURATION }}
+          -p:AndroidKeyStore=false
+          -o artifacts/avalonia-android
+
       # -------- Upload --------
       - name: Upload Windows + Android artifacts
         if: always()
@@ -202,6 +219,20 @@ jobs:
         run: |
           mkdir -p artifacts/uno-ios
           cp -R unoplatform/UnoplatformUI/UnoplatformUI/bin/${{ env.CONFIGURATION }}/net10.0-ios/iossimulator-arm64/*.app artifacts/uno-ios/ || true
+
+      # -------- Avalonia iOS --------
+      - name: Build Avalonia - iOS (simulator, unsigned)
+        run: >
+          dotnet build Avalonia/AvaloniaUiEval.iOS/AvaloniaUiEval.iOS.csproj
+          -c ${{ env.CONFIGURATION }}
+          -p:RuntimeIdentifier=iossimulator-arm64
+          -p:CodesignKey=
+          -p:CodesignProvision=
+
+      - name: Stage Avalonia iOS app bundle
+        run: |
+          mkdir -p artifacts/avalonia-ios
+          cp -R Avalonia/AvaloniaUiEval.iOS/bin/${{ env.CONFIGURATION }}/net10.0-ios/iossimulator-arm64/*.app artifacts/avalonia-ios/ || true
 
       # -------- Upload --------
       - name: Upload iOS artifacts

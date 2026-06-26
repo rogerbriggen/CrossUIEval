@@ -109,7 +109,7 @@ jobs:
       # -------- Upload --------
       - name: Upload Windows + Android artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: windows-android-builds
           path: artifacts/**
@@ -192,7 +192,7 @@ jobs:
       # -------- Upload --------
       - name: Upload iOS artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ios-builds
           path: artifacts/**

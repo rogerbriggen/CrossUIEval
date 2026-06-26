@@ -19,6 +19,9 @@
         <Tab Title="Settings">
             <ShellContent Route="settings" ContentTemplate="{DataTemplate views:SettingsPage}" />
         </Tab>
+        <Tab Title="Backend">
+            <ShellContent Route="backend" ContentTemplate="{DataTemplate views:BackendPage}" />
+        </Tab>
     </TabBar>
 
 </Shell>

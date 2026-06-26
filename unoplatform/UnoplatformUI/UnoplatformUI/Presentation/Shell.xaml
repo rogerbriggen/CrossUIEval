@@ -20,6 +20,7 @@
       <utu:TabBarItem Content="All" />
       <utu:TabBarItem Content="Paged" />
       <utu:TabBarItem Content="Settings" />
+      <utu:TabBarItem Content="Backend" />
     </utu:TabBar>
   </Grid>
 </UserControl>

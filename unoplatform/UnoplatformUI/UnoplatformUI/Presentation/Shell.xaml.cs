@@ -27,6 +27,7 @@ public sealed partial class Shell : UserControl
             1 => typeof(AllTodosPage),
             2 => typeof(PagedTodosPage),
             3 => typeof(SettingsPage),
+            4 => typeof(BackendPage),
             _ => typeof(NewTodoPage),
         };
 

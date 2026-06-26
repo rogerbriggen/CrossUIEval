@@ -28,6 +28,7 @@ public static class MauiProgram
         builder.Services.AddTransient<PagedTodosViewModel>();
         builder.Services.AddTransient<TodoDetailViewModel>();
         builder.Services.AddTransient<SettingsViewModel>();
+        builder.Services.AddTransient<BackendViewModel>();
 
         // Pages
         builder.Services.AddTransient<NewTodoPage>();
@@ -35,6 +36,7 @@ public static class MauiProgram
         builder.Services.AddTransient<PagedTodosPage>();
         builder.Services.AddTransient<TodoDetailPage>();
         builder.Services.AddTransient<SettingsPage>();
+        builder.Services.AddTransient<BackendPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using BackendUiEval.Grpc;
 using Grpc.Net.Client;
 
@@ -7,29 +8,113 @@ public class BackendClient : IDisposable
 {
     // Android emulator maps host loopback to 10.0.2.2; everything else uses localhost.
 #if ANDROID
-    public const string BackendAddress = "http://10.0.2.2:5080";
+    public const string DefaultHost = "10.0.2.2";
 #else
-    public const string BackendAddress = "http://localhost:5080";
+    public const string DefaultHost = "localhost";
 #endif
+    public const int DefaultPort = 5080;
 
-    private readonly GrpcChannel _channel;
+    private readonly object _lock = new();
+    private readonly string _configPath;
 
-    public SettingsService.SettingsServiceClient Settings { get; }
-    public TodoService.TodoServiceClient Todos { get; }
+    private GrpcChannel _channel = null!;
+    private SettingsService.SettingsServiceClient _settings = null!;
+    private TodoService.TodoServiceClient _todos = null!;
+
+    public string Host { get; private set; } = DefaultHost;
+    public int Port { get; private set; } = DefaultPort;
+    public string Address => $"http://{Host}:{Port}";
+
+    public event EventHandler? AddressChanged;
+
+    // Reading these per-call ensures pages always use the latest channel.
+    public SettingsService.SettingsServiceClient Settings { get { lock (_lock) return _settings; } }
+    public TodoService.TodoServiceClient Todos { get { lock (_lock) return _todos; } }
 
     public BackendClient()
     {
         // h2c (HTTP/2 cleartext) for development. Production should use TLS.
         AppContext.SetSwitch("System.Net.Http.SocketsHttpHandler.Http2UnencryptedSupport", true);
 
-        _channel = GrpcChannel.ForAddress(BackendAddress, new GrpcChannelOptions
+        var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CrossUIEval");
+        Directory.CreateDirectory(dir);
+        _configPath = Path.Combine(dir, "backend.json");
+
+        if (TryLoadPersisted(out var host, out var port))
+        {
+            Host = host;
+            Port = port;
+        }
+        Rebuild();
+    }
+
+    public void UpdateEndpoint(string host, int port)
+    {
+        if (string.IsNullOrWhiteSpace(host)) throw new ArgumentException("Host cannot be empty.", nameof(host));
+        if (port is < 1 or > 65535) throw new ArgumentOutOfRangeException(nameof(port), "Port must be 1..65535.");
+
+        lock (_lock)
+        {
+            _channel.Dispose();
+            Host = host.Trim();
+            Port = port;
+            Rebuild();
+            Persist();
+        }
+        AddressChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void Rebuild()
+    {
+        _channel = GrpcChannel.ForAddress(Address, new GrpcChannelOptions
         {
             // ListAll of 10k todos can exceed the 4MB default.
             MaxReceiveMessageSize = 16 * 1024 * 1024,
         });
-        Settings = new SettingsService.SettingsServiceClient(_channel);
-        Todos = new TodoService.TodoServiceClient(_channel);
+        _settings = new SettingsService.SettingsServiceClient(_channel);
+        _todos = new TodoService.TodoServiceClient(_channel);
     }
 
-    public void Dispose() => _channel.Dispose();
+    private bool TryLoadPersisted(out string host, out int port)
+    {
+        host = DefaultHost;
+        port = DefaultPort;
+        try
+        {
+            if (!File.Exists(_configPath)) return false;
+            var json = File.ReadAllText(_configPath);
+            var cfg = JsonSerializer.Deserialize<PersistedConfig>(json);
+            if (cfg is null || string.IsNullOrWhiteSpace(cfg.Host) || cfg.Port is < 1 or > 65535) return false;
+            host = cfg.Host;
+            port = cfg.Port;
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private void Persist()
+    {
+        try
+        {
+            File.WriteAllText(_configPath, JsonSerializer.Serialize(new PersistedConfig { Host = Host, Port = Port }));
+        }
+        catch
+        {
+            // Persistence failure is non-fatal — endpoint is still active in-memory.
+        }
+    }
+
+    public void Dispose()
+    {
+        lock (_lock) _channel.Dispose();
+    }
+
+    private sealed class PersistedConfig
+    {
+        public string Host { get; set; } = DefaultHost;
+        public int Port { get; set; } = DefaultPort;
+    }
 }

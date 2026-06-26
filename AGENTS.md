@@ -6,6 +6,10 @@ The goal of this solution is to create several apps to test out cross-platform U
 
 We create a todo app.
 
+## Git workflow rules
+
+**Never commit and push directly to `main`.** Always create a feature/fix branch, push it, and open a pull request — even for small changes like CI tweaks or doc edits. `main` is updated only via merged PRs.
+
 ## Backend
 
 The backend is a dotnet 10 ASP.NET Core host (project type `Microsoft.NET.Sdk.Web`) that exposes gRPC services. It is started as a command line app and listens on `http://localhost:5080` over HTTP/2 cleartext (h2c). State is in-memory only — restarting the host resets everything to the seed.

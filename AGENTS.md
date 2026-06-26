@@ -8,7 +8,13 @@ We create a todo app.
 
 ## Git workflow rules
 
-**Never commit and push directly to `main`.** Always create a feature/fix branch, push it, and open a pull request — even for small changes like CI tweaks or doc edits. `main` is updated only via merged PRs.
+**Never commit or push directly to `main`.** For any change — even tiny CI tweaks or doc edits — go ahead and:
+
+1. Create a new feature/fix branch off `main`.
+2. Commit the change on that branch.
+3. Push the branch and open a pull request (merge request).
+
+You do not need to ask first before creating the branch and the PR; that is the expected flow. The only hard rule is that `main` is updated exclusively via merged PRs — never a direct commit or push.
 
 ## Backend
 

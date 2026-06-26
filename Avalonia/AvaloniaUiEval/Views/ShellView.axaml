@@ -1,0 +1,23 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:AvaloniaUiEval.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="AvaloniaUiEval.Views.ShellView"
+             x:DataType="vm:ShellViewModel">
+    <Grid RowDefinitions="Auto,*">
+        <TabStrip Grid.Row="0"
+                  ItemsSource="{Binding Tabs}"
+                  SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}"
+                  Margin="8,8,8,0">
+            <TabStrip.ItemTemplate>
+                <DataTemplate x:DataType="vm:TabItem">
+                    <TextBlock Text="{Binding Title}" Padding="8,4" />
+                </DataTemplate>
+            </TabStrip.ItemTemplate>
+        </TabStrip>
+
+        <ContentControl Grid.Row="1" Content="{Binding CurrentPage}" Margin="0,8,0,0" />
+    </Grid>
+</UserControl>

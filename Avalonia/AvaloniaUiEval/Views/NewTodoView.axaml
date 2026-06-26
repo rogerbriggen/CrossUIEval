@@ -1,0 +1,37 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:AvaloniaUiEval.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="500"
+             x:Class="AvaloniaUiEval.Views.NewTodoView"
+             x:DataType="vm:NewTodoViewModel">
+    <ScrollViewer>
+        <StackPanel Margin="16" Spacing="12">
+            <TextBlock Text="New todo" FontSize="22" FontWeight="SemiBold" />
+
+            <TextBlock Text="Description" />
+            <TextBox Text="{Binding Description, Mode=TwoWay}" PlaceholderText="What needs doing?" />
+
+            <TextBlock Text="Detail" />
+            <TextBox Text="{Binding Detail, Mode=TwoWay}"
+                     AcceptsReturn="True"
+                     TextWrapping="Wrap"
+                     Height="120"
+                     PlaceholderText="Longer notes…" />
+
+            <TextBlock Text="Type" />
+            <ComboBox ItemsSource="{Binding TodoTypes}" SelectedItem="{Binding Type, Mode=TwoWay}" HorizontalAlignment="Stretch" />
+
+            <TextBlock Text="Person" />
+            <ComboBox ItemsSource="{Binding Persons}" SelectedItem="{Binding Person, Mode=TwoWay}" HorizontalAlignment="Stretch" />
+
+            <TextBlock Text="State" />
+            <ComboBox ItemsSource="{Binding TodoStates}" SelectedItem="{Binding State, Mode=TwoWay}" HorizontalAlignment="Stretch" />
+
+            <Button Content="Create" Command="{Binding SubmitCommand}" HorizontalAlignment="Left" />
+
+            <TextBlock Text="{Binding Status}" Foreground="Gray" TextWrapping="Wrap" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

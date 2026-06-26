@@ -275,7 +275,62 @@ The original Uno.Extensions.Hosting/Navigation scaffolding is bypassed — `App.
 
 **Central Package Management**: this project uses CPM. Adding new packages means adding a `<PackageVersion>` entry to [unoplatform/UnoplatformUI/Directory.Packages.props](unoplatform/UnoplatformUI/Directory.Packages.props) and a `<PackageReference Include="…"/>` (no `Version` attribute) in the csproj.
 
+## Avalonia client
+
+Project: [Avalonia/AvaloniaUiEval/AvaloniaUiEval.csproj](Avalonia/AvaloniaUiEval/AvaloniaUiEval.csproj). The `Avalonia/` folder holds five projects under `Avalonia/AvaloniaUiEval.slnx`:
+
+| Project | TFM | Notes |
+|---|---|---|
+| `AvaloniaUiEval` | net10.0 | Core: services, view-models, views, `App`. All heads reference it. |
+| `AvaloniaUiEval.Desktop` | net10.0 | Windows/macOS/Linux head. Wired and verified. |
+| `AvaloniaUiEval.Android` | net10.0-android | Android head. Builds; the `BackendClient` `#if ANDROID` switch maps `localhost` → `10.0.2.2` for the emulator. |
+| `AvaloniaUiEval.iOS` | net10.0-ios | iOS head. Restores on Windows; full build requires the iOS workload + Mac. |
+| `AvaloniaUiEval.Browser` | net10.0-browser | Skeleton only — gRPC HTTP/2 needs gRPC-Web in a browser; deferred. |
+
+**Namespace rename.** Default Avalonia templates put everything under `namespace Avalonia`, which collides with the framework's root namespace. The whole solution was renamed to `AvaloniaUiEval` (project names, assembly names, `RootNamespace`, and every `.cs` / `.axaml` namespace). The folder under `Avalonia/` is `AvaloniaUiEval/` (and `.Desktop`, `.Android`, etc.). The outer `Avalonia/` folder stays for parity with `MAUI/` / `unoplatform/`.
+
+### Project layout
+
+| Folder | Contents |
+|---|---|
+| `Services/` | [BackendClient](Avalonia/AvaloniaUiEval/Services/BackendClient.cs) (same shape as MAUI — h2c switch, 16 MB max message, `%LOCALAPPDATA%/CrossUIEval/backend.json` persistence, `#if ANDROID` host switch), [PersonContext](Avalonia/AvaloniaUiEval/Services/PersonContext.cs), `NavigationService` (Avalonia-specific — raises detail/back/tab events the Shell listens to) |
+| `ViewModels/` | [ViewModelBase](Avalonia/AvaloniaUiEval/ViewModels/ViewModelBase.cs) inherits `CommunityToolkit.Mvvm.ComponentModel.ObservableObject`; one VM per page; `ShellViewModel` owns tabs + detail-stack; `AccentChipVm` for per-chip accent rendering |
+| `Views/` | One `.axaml` + code-behind per page; `ShellView` is the root `UserControl`; `MainWindow` is the desktop window that hosts `ShellView` |
+| `Converters/` | [TimestampDisplayConverter](Avalonia/AvaloniaUiEval/Converters/TimestampDisplayConverter.cs) (formats `Google.Protobuf.WellKnownTypes.Timestamp` for list rows) |
+| `App.axaml(.cs)` | DI wiring (Microsoft.Extensions.DependencyInjection) — services as singletons, every VM transient; static `App.Services` for resolving from the Shell |
+
+### Pages
+
+| Tab | View | VM | What it does |
+|---|---|---|---|
+| New | NewTodoView | NewTodoViewModel | Form: description, multi-line detail, type/person/state ComboBoxes. `[NotifyCanExecuteChangedFor]` disables Create until `Description` is non-empty. |
+| All | AllTodosView | AllTodosViewModel | `ListAll`, client-side filter to Person1. Explicit Refresh button. Row click sets `SelectedTodo` → `NavigationService.NavigateToDetail`. |
+| Paged | PagedTodosView | PagedTodosViewModel | `ListPaged(offset, 30)`. Code-behind walks the visual tree to find the inner `ScrollViewer` and hooks `ScrollChanged` to invoke `LoadMoreCommand` when near-bottom. A "Load more" button is also bound to the same command. `_loadingMore` under `lock` prevents overlapping fetches. |
+| Settings | SettingsView | SettingsViewModel | Person ComboBox, accent chips (per-chip `AccentChipVm` with `StrokeBrush`/`StrokeThickness` — refreshed when selection changes), `ToggleSwitch` x3, TextBox x2, multi-line TextBox x2, ComboBox x4, read-only `TextBlock` x4. Save / Reload buttons. |
+| Backend | BackendView | BackendViewModel | Host TextBox, port NumericUpDown, Save calls `BackendClient.UpdateEndpoint(host, port)` and rebuilds the gRPC channel. |
+| (detail) | TodoDetailView | TodoDetailViewModel | Read-only view of every field. Back button calls `NavigationService.GoBack()`. |
+
+### Navigation
+
+There's no `Shell` in Avalonia. `ShellViewModel` owns `Tabs` (a list of `TabItem` pairs of title + `Type`) and `CurrentPage`. Tab switch resolves the corresponding VM via the DI provider, sets it as `CurrentPage`, and calls its `OnActivatedAsync()`. The `ViewLocator` (kept from the Avalonia template, in `AvaloniaUiEval.ViewLocator`) maps `XxxViewModel` to `XxxView`.
+
+Detail navigation: a list row's `SelectedItem` setter calls `NavigationService.NavigateToDetail(todo)`. The Shell subscribes to that event, resolves a fresh `TodoDetailViewModel`, assigns its `Todo`, and swaps `CurrentPage`. The detail page's Back button calls `NavigationService.GoBack()` which restores the previous tab page.
+
+### Always-fresh data
+
+Every page VM with a fetch has an `OnActivatedAsync()` that clears its bound state and re-fetches. `ShellViewModel.SelectedTabIndex` setter calls it. Mirrors the MAUI `OnAppearing` / Uno `OnNavigatedTo` semantics. The status label is prefixed `Refreshed HH:mm:ss — …` for parity.
+
+### Pull-to-refresh
+
+Not wired on Desktop — explicit Refresh button only, same fallback as MauiBlazor / Uno's desktop story. Could be added on the Android/iOS heads later via a gesture handler.
+
+### XAML notes
+
+- `AvaloniaUseCompiledBindingsByDefault` is on, so every `.axaml` root sets `x:DataType` to its VM.
+- Cross-assembly XAML namespaces use `clr-namespace:BackendUiEval.Grpc;assembly=Shared.Grpc` (not `using:` — Avalonia's `using:` doesn't support `;assembly=`).
+- `TextBox.Watermark` is obsolete in Avalonia — use `PlaceholderText`.
+
 Later todo:
 
 * MAUI Angular with WebView
-* Avalonia UI
+* Avalonia Browser head (needs gRPC-Web)

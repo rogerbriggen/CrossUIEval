@@ -1,0 +1,43 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:AvaloniaUiEval.ViewModels"
+             xmlns:conv="using:AvaloniaUiEval.Converters"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="600"
+             x:Class="AvaloniaUiEval.Views.TodoDetailView"
+             x:DataType="vm:TodoDetailViewModel">
+    <UserControl.Resources>
+        <conv:TimestampDisplayConverter x:Key="TimestampDisplay" />
+    </UserControl.Resources>
+
+    <ScrollViewer>
+        <StackPanel Margin="16" Spacing="10">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="◀ Back" Command="{Binding BackCommand}" />
+                <TextBlock Text="Todo detail" FontSize="22" FontWeight="SemiBold" VerticalAlignment="Center" />
+            </StackPanel>
+
+            <TextBlock Text="Id" FontWeight="SemiBold" />
+            <TextBlock Text="{Binding Todo.Id}" />
+
+            <TextBlock Text="Date" FontWeight="SemiBold" />
+            <TextBlock Text="{Binding Todo.Date, Converter={StaticResource TimestampDisplay}}" />
+
+            <TextBlock Text="Description" FontWeight="SemiBold" />
+            <TextBlock Text="{Binding Todo.Description}" TextWrapping="Wrap" />
+
+            <TextBlock Text="Detail" FontWeight="SemiBold" />
+            <TextBlock Text="{Binding Todo.Detail}" TextWrapping="Wrap" />
+
+            <TextBlock Text="Type" FontWeight="SemiBold" />
+            <TextBlock Text="{Binding Todo.Type}" />
+
+            <TextBlock Text="Person" FontWeight="SemiBold" />
+            <TextBlock Text="{Binding Todo.Person}" />
+
+            <TextBlock Text="State" FontWeight="SemiBold" />
+            <TextBlock Text="{Binding Todo.State}" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

@@ -1,0 +1,103 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:AvaloniaUiEval.ViewModels"
+             xmlns:grpc="clr-namespace:BackendUiEval.Grpc;assembly=Shared.Grpc"
+             mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="800"
+             x:Class="AvaloniaUiEval.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+    <ScrollViewer>
+        <StackPanel Margin="16" Spacing="12">
+            <TextBlock Text="Settings" FontSize="22" FontWeight="SemiBold" />
+
+            <TextBlock Text="Viewing person" />
+            <ComboBox ItemsSource="{Binding Persons}"
+                      SelectedItem="{Binding ViewingPerson, Mode=TwoWay}"
+                      HorizontalAlignment="Left" Width="200" />
+
+            <TextBlock Text="{Binding Status}" Foreground="Gray" TextWrapping="Wrap" />
+
+            <TextBlock Text="Accent color" />
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                <ItemsControl ItemsSource="{Binding AccentChips}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal" Spacing="8" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:AccentChipVm">
+                            <Border Width="40" Height="40"
+                                    CornerRadius="20"
+                                    Background="{Binding Fill}"
+                                    BorderBrush="{Binding StrokeBrush}"
+                                    BorderThickness="{Binding StrokeThickness}">
+                                <Border.Tag>
+                                    <Binding Path="Value" />
+                                </Border.Tag>
+                                <Button Background="Transparent"
+                                        BorderThickness="0"
+                                        Padding="0"
+                                        Command="{Binding $parent[ItemsControl].((vm:SettingsViewModel)DataContext).SelectAccentColorCommand}"
+                                        CommandParameter="{Binding Value}" />
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <Separator Margin="0,8" />
+
+            <ToggleSwitch Content="Notifications enabled" IsChecked="{Binding NotificationsEnabled, Mode=TwoWay}" />
+            <ToggleSwitch Content="Dark mode" IsChecked="{Binding DarkMode, Mode=TwoWay}" />
+            <ToggleSwitch Content="Show completed todos" IsChecked="{Binding ShowCompletedTodos, Mode=TwoWay}" />
+
+            <TextBlock Text="Display name" />
+            <TextBox Text="{Binding DisplayName, Mode=TwoWay}" />
+
+            <TextBlock Text="Email" />
+            <TextBox Text="{Binding Email, Mode=TwoWay}" />
+
+            <TextBlock Text="Signature" />
+            <TextBox Text="{Binding Signature, Mode=TwoWay}"
+                     AcceptsReturn="True" TextWrapping="Wrap" Height="100" />
+
+            <TextBlock Text="Default detail template" />
+            <TextBox Text="{Binding DefaultDetailTemplate, Mode=TwoWay}"
+                     AcceptsReturn="True" TextWrapping="Wrap" Height="100" />
+
+            <TextBlock Text="Default todo type" />
+            <ComboBox ItemsSource="{Binding TodoTypes}" SelectedItem="{Binding DefaultTodoType, Mode=TwoWay}" HorizontalAlignment="Left" Width="200" />
+
+            <TextBlock Text="Default state" />
+            <ComboBox ItemsSource="{Binding TodoStates}" SelectedItem="{Binding DefaultState, Mode=TwoWay}" HorizontalAlignment="Left" Width="200" />
+
+            <TextBlock Text="Language" />
+            <ComboBox ItemsSource="{Binding Languages}" SelectedItem="{Binding Language, Mode=TwoWay}" HorizontalAlignment="Left" Width="200" />
+
+            <TextBlock Text="Page size" />
+            <ComboBox ItemsSource="{Binding PageSizes}" SelectedItem="{Binding PageSize, Mode=TwoWay}" HorizontalAlignment="Left" Width="200" />
+
+            <Separator Margin="0,8" />
+
+            <TextBlock Text="Read-only" FontWeight="SemiBold" />
+
+            <Grid ColumnDefinitions="160,*" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="4" ColumnSpacing="8">
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="User id" Foreground="Gray" />
+                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding UserId}" />
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Account created" Foreground="Gray" />
+                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding AccountCreated}" />
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Todo count" Foreground="Gray" />
+                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding TodoCount}" />
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="App version" Foreground="Gray" />
+                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding AppVersion}" />
+            </Grid>
+
+            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+                <Button Content="Save" Command="{Binding SaveCommand}" />
+                <Button Content="Reload" Command="{Binding LoadCommand}" />
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

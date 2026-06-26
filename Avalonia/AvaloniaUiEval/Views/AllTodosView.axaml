@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:AvaloniaUiEval.ViewModels"
+             xmlns:grpc="clr-namespace:BackendUiEval.Grpc;assembly=Shared.Grpc"
+             xmlns:conv="using:AvaloniaUiEval.Converters"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="600"
+             x:Class="AvaloniaUiEval.Views.AllTodosView"
+             x:DataType="vm:AllTodosViewModel">
+    <UserControl.Resources>
+        <conv:TimestampDisplayConverter x:Key="TimestampDisplay" />
+    </UserControl.Resources>
+
+    <Grid RowDefinitions="Auto,Auto,*" Margin="16">
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8">
+            <TextBlock Text="All todos (Person1)" FontSize="22" FontWeight="SemiBold" VerticalAlignment="Center" />
+            <Button Content="Refresh" Command="{Binding LoadCommand}" />
+        </StackPanel>
+
+        <TextBlock Grid.Row="1" Text="{Binding Status}" Foreground="Gray" TextWrapping="Wrap" Margin="0,8" />
+
+        <ListBox Grid.Row="2"
+                 ItemsSource="{Binding Todos}"
+                 SelectedItem="{Binding SelectedTodo, Mode=TwoWay}">
+            <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="grpc:Todo">
+                    <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto" Margin="4">
+                        <TextBlock Grid.Row="0" Grid.Column="0"
+                                   Text="{Binding Date, Converter={StaticResource TimestampDisplay}}"
+                                   FontWeight="SemiBold" />
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Type}" Foreground="Gray" />
+                        <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                                   Text="{Binding Description}" TextWrapping="Wrap" />
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </Grid>
+</UserControl>

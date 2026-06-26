@@ -4,6 +4,8 @@
     <TargetFramework>net10.0-ios</TargetFramework>
     <SupportedOSPlatformVersion>13.0</SupportedOSPlatformVersion>
     <Nullable>enable</Nullable>
+    <RootNamespace>AvaloniaUiEval.iOS</RootNamespace>
+    <AssemblyName>AvaloniaUiEval.iOS</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,6 +13,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Avalonia\Avalonia.csproj" />
+    <ProjectReference Include="..\AvaloniaUiEval\AvaloniaUiEval.csproj" />
   </ItemGroup>
 </Project>

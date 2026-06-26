@@ -4,6 +4,8 @@
     <OutputType>Exe</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
+    <RootNamespace>AvaloniaUiEval.Browser</RootNamespace>
+    <AssemblyName>AvaloniaUiEval.Browser</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,6 +13,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Avalonia\Avalonia.csproj" />
+    <ProjectReference Include="..\AvaloniaUiEval\AvaloniaUiEval.csproj" />
   </ItemGroup>
 </Project>

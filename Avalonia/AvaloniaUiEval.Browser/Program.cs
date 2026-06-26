@@ -1,7 +1,6 @@
-﻿using Avalonia;
 using Avalonia;
 using Avalonia.Browser;
-using System.Runtime.Versioning;
+using AvaloniaUiEval;
 using System.Threading.Tasks;
 
 internal sealed partial class Program

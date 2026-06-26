@@ -1,43 +1,68 @@
+using System;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core;
-using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
-using Avalonia.ViewModels;
-using Avalonia.Views;
-using System.Linq;
+using AvaloniaUiEval.Services;
+using AvaloniaUiEval.ViewModels;
+using AvaloniaUiEval.Views;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace Avalonia
+namespace AvaloniaUiEval;
+
+public partial class App : Application
 {
-    public partial class App : Application
+    public static IServiceProvider Services { get; private set; } = null!;
+
+    public override void Initialize()
     {
-        public override void Initialize()
+        AvaloniaXamlLoader.Load(this);
+    }
+
+    public override void OnFrameworkInitializationCompleted()
+    {
+        Services = BuildServices();
+
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            AvaloniaXamlLoader.Load(this);
+            desktop.MainWindow = new MainWindow
+            {
+                DataContext = Services.GetRequiredService<ShellViewModel>(),
+            };
+        }
+        else if (ApplicationLifetime is IActivityApplicationLifetime activity)
+        {
+            activity.MainViewFactory = () => new ShellView
+            {
+                DataContext = Services.GetRequiredService<ShellViewModel>(),
+            };
+        }
+        else if (ApplicationLifetime is ISingleViewApplicationLifetime singleView)
+        {
+            singleView.MainView = new ShellView
+            {
+                DataContext = Services.GetRequiredService<ShellViewModel>(),
+            };
         }
 
-        public override void OnFrameworkInitializationCompleted()
-        {
-            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-            {
-                desktop.MainWindow = new MainWindow
-                {
-                    DataContext = new MainViewModel()
-                };
-            }
-            else if (ApplicationLifetime is IActivityApplicationLifetime singleViewFactoryApplicationLifetime)
-            {
-                singleViewFactoryApplicationLifetime.MainViewFactory = () => new MainView { DataContext = new MainViewModel() };
-            }
-            else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
-            {
-                singleViewPlatform.MainView = new MainView
-                {
-                    DataContext = new MainViewModel()
-                };
-            }
+        base.OnFrameworkInitializationCompleted();
+    }
 
-            base.OnFrameworkInitializationCompleted();
-        }
+    private static IServiceProvider BuildServices()
+    {
+        var services = new ServiceCollection();
+
+        services.AddSingleton<BackendClient>();
+        services.AddSingleton<PersonContext>();
+        services.AddSingleton<NavigationService>();
+
+        services.AddTransient<NewTodoViewModel>();
+        services.AddTransient<AllTodosViewModel>();
+        services.AddTransient<PagedTodosViewModel>();
+        services.AddTransient<SettingsViewModel>();
+        services.AddTransient<TodoDetailViewModel>();
+        services.AddTransient<BackendViewModel>();
+        services.AddTransient<ShellViewModel>();
+
+        return services.BuildServiceProvider();
     }
 }

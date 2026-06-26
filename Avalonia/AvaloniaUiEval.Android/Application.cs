@@ -1,21 +1,20 @@
-﻿using Android.App;
+using Android.App;
 using Android.Runtime;
 using Avalonia;
 using Avalonia.Android;
 
-namespace Avalonia.Android
-{
-    [Application]
-    public class Application : AvaloniaAndroidApplication<App>
-    {
-        protected Application(nint javaReference, JniHandleOwnership transfer) : base(javaReference, transfer)
-        {
-        }
+namespace AvaloniaUiEval.Android;
 
-        protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
-        {
-            return base.CustomizeAppBuilder(builder)
+[Application]
+public class Application : AvaloniaAndroidApplication<AvaloniaUiEval.App>
+{
+    protected Application(nint javaReference, JniHandleOwnership transfer) : base(javaReference, transfer)
+    {
+    }
+
+    protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
+    {
+        return base.CustomizeAppBuilder(builder)
             .WithInterFont();
-        }
     }
 }

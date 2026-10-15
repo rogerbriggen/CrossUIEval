@@ -137,8 +137,8 @@ jobs:
   # ---------------------------------------------------------------------------
   build-ios:
     name: iOS (macOS)
-    # macos-26 (Tahoe) ships Xcode 27.x, required by .NET for iOS 27.
-    runs-on: macos-26
+    # xcode-27 image ships Xcode 27.x, required by .NET for iOS 27.
+    runs-on: xcode-27
     # macOS minutes are expensive — only run on main, release branches/tags, or manual dispatch.
     if: >
       github.event_name == 'workflow_dispatch' ||

@@ -6,12 +6,11 @@
     See https://aka.platform.uno/using-uno-sdk#implicit-packages for more information regarding the Implicit Packages.
   -->
   <ItemGroup>
-    <PackageVersion Include="Serilog.AspNetCore" Version="8.0.1" />
-    <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.5.0" />
-    <PackageVersion Include="Grpc.Net.Client" Version="2.71.0" />
+    <PackageVersion Include="Serilog.AspNetCore" Version="10.0.0" />
+    <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.3.0" />
+    <PackageVersion Include="Grpc.Net.Client" Version="2.84.0" />
   </ItemGroup>
-
   <ItemGroup Condition="$(UsingUnoSdk) != 'true'">
-    <PackageVersion Include="Uno.Wasm.Bootstrap.Server" Version="10.0.96" />
+    <PackageVersion Include="Uno.Wasm.Bootstrap.Server" Version="10.0.98" />
   </ItemGroup>
 </Project>

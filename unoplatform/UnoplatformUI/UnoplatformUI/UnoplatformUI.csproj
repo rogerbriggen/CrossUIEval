@@ -37,6 +37,10 @@
     </UnoFeatures>
   </PropertyGroup>
 
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">
+    <SupportedOSPlatformVersion>15.0</SupportedOSPlatformVersion>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Grpc.Net.Client" />
   </ItemGroup>

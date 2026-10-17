@@ -6,7 +6,21 @@
 version: 2
 updates:
   - package-ecosystem: "nuget" # See documentation for possible values
-    directory: "/" # Location of package manifests
+    # The repo root has no project files, so list every folder that contains
+    # csproj files (or Directory.Packages.props for Uno's central package management).
+    directories:
+      - "/Avalonia/AvaloniaUiEval"
+      - "/Avalonia/AvaloniaUiEval.Android"
+      - "/Avalonia/AvaloniaUiEval.Browser"
+      - "/Avalonia/AvaloniaUiEval.Desktop"
+      - "/Avalonia/AvaloniaUiEval.iOS"
+      - "/Backend/BackendUiEval/BackendUiEval"
+      - "/MAUI/MauiUiEval/MauiUiEval"
+      - "/MauiBlazor/MauiBlazorhybrid/MauiBlazorhybrid"
+      - "/Shared/Shared.Grpc"
+      - "/unoplatform/UnoplatformUI"
+      - "/unoplatform/UnoplatformUI/UnoplatformUI"
+      - "/unoplatform/UnoplatformUI/UnoplatformUI.Server"
     schedule:
       interval: "weekly"
     groups:
@@ -33,7 +47,7 @@ updates:
         patterns:
           - "Grpc.*"
   - package-ecosystem: dotnet-sdk # See documentation for possible values
-    directory: "/" # Location of package manifests
+    directory: "/unoplatform/UnoplatformUI" # Only location of a global.json
     schedule:
       interval: "weekly"
   - package-ecosystem: "github-actions"
